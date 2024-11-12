@@ -26,6 +26,9 @@ WORKDIR /var/www
 # Copy existing application directory contents
 COPY . .
 
-# Expose port 9000 and start php-fpm server
+# Expose the port for PHP-FPM and the Laravel development server
 EXPOSE 9000
-CMD ["php-fpm"]
+EXPOSE 8000
+
+# Start PHP-FPM and run artisan serve on port 8000
+CMD php artisan serve --host=0.0.0.0 --port=8000 & php-fpm
