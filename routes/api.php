@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\NewsFeedController;
 use App\Http\Controllers\PreferenceController;
 /*
 |--------------------------------------------------------------------------
@@ -23,6 +24,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/preferences', [PreferenceController::class, 'store']); // Save preferences
     Route::get('/preferences', [PreferenceController::class, 'show']);  // Get preferences
     Route::get('/news-feed', [NewsFeedController::class, 'personalized']);
+
     Route::post('logout', [AuthController::class, 'logout']);
 });
 
