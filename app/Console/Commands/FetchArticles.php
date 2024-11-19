@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Article;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class FetchArticles extends Command
 {
@@ -27,33 +28,93 @@ class FetchArticles extends Command
      */
     public function handle()
     {
-        $newsAPIs = [
+        $newsAPIKey = env('NEWS_API_KEY');
+        $nycAPIKey = env('NYC_TIMES_API_KEY');
+        $guardianAPIKey = env('THE_GURDIAN_API_KEY');
 
-            // will add API's here
+        $newsAPIs = [
+            [
+                'url' => 'https://newsapi.org/v2/top-headlines?country=us&apiKey=' . $newsAPIKey,
+                'source' => 'NewsAPI',
+                'parse_key' => 'articles',
+            ],
+            [
+                'url' => 'https://api.nytimes.com/svc/topstories/v2/us.json?api-key=' . $nycAPIKey,
+                'source' => 'NYC Times',
+                'parse_key' => 'results',
+            ],
+            [
+                'url' => 'https://content.guardianapis.com/search?sections?q=us&api-key=' . $guardianAPIKey . '&show-fields=all',
+                'source' => 'The Guardian',
+                'parse_key' => 'response.results',
+            ],
         ];
 
-        foreach ($newsAPIs as $url) {
-            $response = Http::get($url);
-
+        foreach ($newsAPIs as $api) {
+            $response = Http::get($api['url']);
+            Log::info("response",[$response]);
             if ($response->successful()) {
-                $articles = $response->json()['articles'];
+                $articles = data_get($response->json(), $api['parse_key'], []);
                 foreach ($articles as $article) {
+                    // Normalize data depending on the source
+                    $normalizedArticle = $this->normalizeArticle($article, $api['source']);
+
+                    // Store or update the article
                     Article::updateOrCreate(
-                        ['url' => $article['url']],
-                        [
-                            'title' => $article['title'],
-                            'content' => $article['content'],
-                            'author' => $article['author'],
-                            'source' => $article['source']['name'],
-                            'category' => 'General', // Modify as needed
-                            'url' => $article['url'],
-                            'published_at' => $article['publishedAt'],
-                        ]
+                        ['url' => $normalizedArticle['url']],
+                        $normalizedArticle
                     );
                 }
+            } else {
+                $this->error("Failed to fetch articles from {$api['source']}.");
             }
         }
 
         $this->info('Articles fetched successfully!');
+    }
+
+    /**
+     * Normalize article data based on the API source.
+     */
+    private function normalizeArticle(array $article, string $source): array
+    {
+        switch ($source) {
+            case 'NYC Times':
+                return [
+                    'title' => $article['title'] ?? 'No Title',
+                    'content' => $article['abstract'] ?? 'No Content',
+                    'author' => $article['byline'] ?? 'Unknown',
+                    'source' => $source,
+                    'category' => $article['section'] ?? 'General',
+                    'url' => $article['url'] ?? '',
+                    'published_at' => $article['published_date'] ?? now(),
+                ];
+
+            case 'NewsAPI':
+                return [
+                    'title' => $article['title'] ?? 'No Title',
+                    'content' => $article['content'] ?? 'No Content',
+                    'author' => $article['author'] ?? 'Unknown',
+                    // 'source' => $article['source']['name'] ?? 'Unknown',
+                    'source' => $source,
+                    'category' => 'General', // Modify if categories are needed
+                    'url' => $article['url'] ?? '',
+                    'published_at' => $article['publishedAt'] ?? now(),
+                ];
+
+            case 'The Guardian':
+                return [
+                    'title' => $article['webTitle'] ?? 'No Title',
+                    'content' => $article['fields']['bodyText'] ?? 'No Content',
+                    'author' => $article['fields']['byline'] ?? 'Unknown',
+                    'source' => $source,
+                    'category' => $article['sectionId'] ?? 'General',
+                    'url' => $article['webUrl'] ?? '',
+                    'published_at' => $article['webPublicationDate'] ?? now(),
+                ];
+
+            default:
+                return [];
+        }
     }
 }

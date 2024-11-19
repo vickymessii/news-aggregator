@@ -17,4 +17,8 @@ class Article extends Model
         'url',
         'published_at',
     ];
+    protected function setPublishedAtAttribute($value)
+    {
+        $this->attributes['published_at'] = \Carbon\Carbon::parse($value)->format('Y-m-d H:i:s');
+    }
 }

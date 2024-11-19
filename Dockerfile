@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     libonig-dev \
     libxml2-dev \
+    supervisor \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd
 
@@ -26,9 +27,13 @@ WORKDIR /var/www
 # Copy existing application directory contents
 COPY . .
 
+# Create supervisor configuration
+RUN mkdir -p /var/log/supervisor
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
 # Expose the port for PHP-FPM and the Laravel development server
 EXPOSE 9000
 EXPOSE 8000
 
-# Start PHP-FPM and run artisan serve on port 8000
-CMD php artisan serve --host=0.0.0.0 --port=8000 & php-fpm
+# Start supervisor
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

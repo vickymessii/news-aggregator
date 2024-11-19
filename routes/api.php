@@ -17,16 +17,29 @@ use App\Http\Controllers\PreferenceController;
 |
 */
 
-Route::post('register', [AuthController::class, 'register']);
-Route::post('login', [AuthController::class, 'login']);
+// Auth routes (no authentication required)
+// Route::prefix('auth')->group(function () {
+    Route::post('register', [AuthController::class, 'register']);
+    Route::post('login', [AuthController::class, 'login']);
+// });
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/preferences', [PreferenceController::class, 'store']); // Save preferences
-    Route::get('/preferences', [PreferenceController::class, 'show']);  // Get preferences
-    Route::get('/news-feed', [NewsFeedController::class, 'personalized']);
+    // Preferences
+    Route::prefix('preferences')->group(function () {
+        Route::post('/', [PreferenceController::class, 'store']);  // Save preferences
+        Route::get('/', [PreferenceController::class, 'show']);   // Get preferences
+    });
 
+   // Personalized news feed
+   Route::get('news-feed', [NewsFeedController::class, 'personalized']);
+
+    // Logout
     Route::post('logout', [AuthController::class, 'logout']);
 });
 
-Route::get('/articles', [ArticleController::class, 'index']);
-Route::get('/articles/{id}', [ArticleController::class, 'show']);
+
+// Article routes (no authentication required for listing and viewing articles)
+Route::prefix('articles')->group(function () {
+    Route::get('/', [ArticleController::class, 'index']);     // Get list of articles
+    Route::get('{id}', [ArticleController::class, 'show']);    // Get article details by ID
+});

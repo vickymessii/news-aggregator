@@ -21,13 +21,13 @@ class AuthController extends Controller
      *             @OA\Property(property="name", type="string", example="John Doe"),
      *             @OA\Property(property="email", type="string", example="johndoe@example.com"),
      *             @OA\Property(property="password", type="string", example="password"),
+     *             @OA\Property(property="password_confirmation", type="string", example="password"),
      *         )
      *     ),
      *     @OA\Response(response=201, description="User registered successfully"),
      *     @OA\Response(response=422, description="Validation error")
      * )
      */
-    // User Registration
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -49,7 +49,28 @@ class AuthController extends Controller
         return response()->json(['message' => 'User created successfully'], 201);
     }
 
-    // User Login
+    /**
+     * @OA\Post(
+     *     path="/api/login",
+     *     summary="Login a user",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="email", type="string", example="johndoe@example.com"),
+     *             @OA\Property(property="password", type="string", example="password"),
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Login successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Login successful"),
+     *             @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Invalid credentials"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -74,7 +95,19 @@ class AuthController extends Controller
         return response()->json(['message' => 'Invalid credentials'], 401);
     }
 
-    // User Logout
+    /**
+     * @OA\Post(
+     *     path="/api/logout",
+     *     summary="Logout the authenticated user",
+     *     tags={"Authentication"},
+     *     @OA\Response(response=200, description="Logged out successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Logged out successfully")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
+     */
     public function logout(Request $request)
     {
         auth()->user()->tokens->each(function ($token) {
