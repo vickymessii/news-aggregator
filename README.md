@@ -1,18 +1,26 @@
 
-#  News Aggregator API
+# News Aggregator API
+
+The News Aggregator API is a Laravel-based project that allows users to collect, aggregate, and interact with news articles from multiple sources. It is built using Docker to simplify the development and deployment process.
+
 ## Project Setup
 
 ### Requirements
-- Docker
-- Composer
+
+Before setting up the project, ensure you have the following tools installed:
+
+- **Docker**: For containerizing and running the application.
+- **Composer**: For managing PHP dependencies.
 
 ### Installation
 
-1. Clone the repository:
+Follow these steps to get the project up and running locally:
+
+1. **Clone the repository**:
+   Clone the project repository to your local machine and navigate to the project directory:
    ```bash
    git clone https://github.com/vickymessii/news-aggregator.git
    cd news-aggregator
-   ```
 
 2. Copy the `.env.example` file to `.env` and set your environment variables.
 
