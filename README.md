@@ -1,5 +1,5 @@
-# News Aggregator API
 
+#  News Aggregator API
 ## Project Setup
 
 ### Requirements
@@ -25,7 +25,12 @@
    ```bash
    docker-compose exec app php artisan migrate
    ```
+5. Generate API docs
+  ```base 
+  docker-compose exec app php artisan l5-swagger:generate
+  ```
+  ### API Documentation
 
-### API Documentation
-- [Include API documentation here]
+    http://127.0.0.1:8000/api/documentation
+
 
